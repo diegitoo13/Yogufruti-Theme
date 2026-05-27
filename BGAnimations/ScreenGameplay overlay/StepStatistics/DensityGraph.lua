@@ -37,9 +37,9 @@ local UpdateRate, first_second, last_second
 local af = Def.ActorFrame{
 	InitCommand=function(self)
 		if style ~= "double" then
-			self:xy(pos_x, 55)
+			self:xy(pos_x, SCREEN_CENTER_Y - height - 10)
 		else
-			self:xy(260, 40)
+			self:xy(260, SCREEN_CENTER_Y - height - 10)
 		end
 		self:queuecommand("Update")
 	end,

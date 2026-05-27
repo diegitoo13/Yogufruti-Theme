@@ -477,7 +477,7 @@ ParseChartInfo = function(steps, pn)
 			local chartString, BPMs = GetSimfileChartString(simfileString, stepsType, difficulty, description, fileType)
 			if chartString ~= nil and BPMs ~= nil then
 				-- We use 16 characters for the V3 GrooveStats hash.
-				local Hash = BinaryToHex(CRYPTMAN:SHA1String(chartString..BPMs)):sub(1, 16)
+				local Hash = ""
 
 				-- Check if there is an & present, we're dealing with a couples chart:
 				-- Couples charts have P1 and P2 steps in the same chart string.
@@ -504,15 +504,11 @@ ParseChartInfo = function(steps, pn)
 				InfinitesimalCache.Streams[pn].ColumnCues = ColumnCues
 				InfinitesimalCache.Streams[pn].Hash = Hash
 
-				-- Let's just do this here for now since a lot of the existing infra
-				local playerEnum = pn == "P1" and PLAYER_1 or PLAYER_2
-				local techCounts = steps:CalculateTechCounts(playerEnum)
-
-				InfinitesimalCache.Streams[pn].Crossovers = techCounts:GetValue("TechCountsCategory_Crossovers")
-				InfinitesimalCache.Streams[pn].Footswitches = techCounts:GetValue("TechCountsCategory_Footswitches")
-				InfinitesimalCache.Streams[pn].Sideswitches = techCounts:GetValue("TechCountsCategory_Sideswitches")
-				InfinitesimalCache.Streams[pn].Jacks = techCounts:GetValue("TechCountsCategory_Jacks")
-				InfinitesimalCache.Streams[pn].Brackets = techCounts:GetValue("TechCountsCategory_Brackets")
+				InfinitesimalCache.Streams[pn].Crossovers = 0
+				InfinitesimalCache.Streams[pn].Footswitches = 0
+				InfinitesimalCache.Streams[pn].Sideswitches = 0
+				InfinitesimalCache.Streams[pn].Jacks = 0
+				InfinitesimalCache.Streams[pn].Brackets = 0
 
 				InfinitesimalCache.Streams[pn].Filename = filename
 				InfinitesimalCache.Streams[pn].StepsType = stepsType

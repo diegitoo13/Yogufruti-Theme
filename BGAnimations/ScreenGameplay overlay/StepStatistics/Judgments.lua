@@ -22,11 +22,11 @@ local af = Def.ActorFrame{}
 -- Banner
 af[#af+1] = Def.Sprite {
     InitCommand=function(self)
-        self:y(-160)
+        self:y(-SCREEN_CENTER_Y + 60)
         local song = GAMESTATE:GetCurrentSong()
         if song and song:HasBanner() then
             self:Load(song:GetBannerPath())
-            self:scaletofit(-120, -38, 120, 38)
+            self:scaletofit(-140, -44, 140, 44)
         end
     end
 }
@@ -36,7 +36,7 @@ for index, window in ipairs(TNS.Types) do
     af[#af+1] = LoadFont("Common Normal")..{
         Text=(pattern):format(0),
         InitCommand=function(self)
-            self:y((index-1)*row_height - 90)
+            self:y((index-1)*row_height - 100)
             self:x(20)
             self:halign(0) -- left align
             self:zoom(1.2)
@@ -75,7 +75,7 @@ for index, window in ipairs(TNS.Types) do
             self:zoom(1.0)
             self:halign(1) -- right align
             self:x(-20)
-            self:y((index-1) * row_height - 90)
+            self:y((index-1) * row_height - 100)
             self:diffuse( TNS.Colors[index] )
         end,
     }
@@ -96,7 +96,7 @@ for i, label in ipairs(radar_lines) do
             self:zoom(0.9)
             self:halign(1) -- right align
             self:x(-20)
-            self:y(80 + (i-1)*24)
+            self:y(60 + (i-1)*24)
             self:diffuse(color("#aaaaaa"))
         end
     }
@@ -106,7 +106,7 @@ for i, label in ipairs(radar_lines) do
             self:zoom(1.0)
             self:halign(0) -- left align
             self:x(20)
-            self:y(80 + (i-1)*24)
+            self:y(60 + (i-1)*24)
             self:diffuse(color("#ffffff"))
             
             -- Pre-calculate max
