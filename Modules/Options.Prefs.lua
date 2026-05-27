@@ -117,6 +117,13 @@ return {
         Choices = { OptionNameString('Off'), OptionNameString('On') },
         Values = {false, true}
     },
+    LiveStats =
+    {
+        UserPref = true,
+        Default = false,
+        Choices = { OptionNameString('Off'), OptionNameString('On') },
+        Values = {false, true}
+    },
     BasicMode =
     {
         Default = false,

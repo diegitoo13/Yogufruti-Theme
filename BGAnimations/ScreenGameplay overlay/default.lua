@@ -26,7 +26,8 @@ local t = Def.ActorFrame {
         end
     end,
     
-    LoadActor("StageCount")
+    LoadActor("StageCount"),
+    LoadActor("LiveStats")
 }
 
 for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
