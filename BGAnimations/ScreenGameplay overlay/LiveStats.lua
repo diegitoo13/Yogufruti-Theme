@@ -53,12 +53,12 @@ af[#af+1] = Def.Quad {
 -- Banner
 af[#af+1] = Def.Sprite {
     InitCommand=function(self)
-        self:y(-100)
-        self:x(-40)
+        self:y(-120)
+        self:x(0)
         local song = GAMESTATE:GetCurrentSong()
         if song and song:HasBanner() then
             self:Load(song:GetBannerPath())
-            self:scaletofit(-60, -20, 60, 20)
+            self:scaletofit(-100, -32, 100, 32)
         end
     end
 }
@@ -68,8 +68,8 @@ for index, window in ipairs(TNS.Types) do
     af[#af+1] = LoadFont("Common Normal")..{
         Text=(pattern):format(0),
         InitCommand=function(self)
-            self:y((index-1)*row_height - 110)
-            self:x(110)
+            self:y((index-1)*row_height - 70)
+            self:x(90)
             self:halign(1) -- right align
             self:diffuse( TNS.Colors[index] )
             local leadingZeroAttr = { Length=(digits-1), Diffuse=Brightness(self:GetDiffuse(), 0.35) }
@@ -105,8 +105,8 @@ for index, window in ipairs(TNS.Types) do
         InitCommand=function(self)
             self:zoom(0.8)
             self:halign(1) -- right align
-            self:x(50)
-            self:y((index-1) * row_height - 110)
+            self:x(30)
+            self:y((index-1) * row_height - 70)
             self:diffuse( TNS.Colors[index] )
         end,
     }
@@ -119,9 +119,9 @@ for i, label in ipairs(radar_lines) do
         Text=label:lower(),
         InitCommand=function(self)
             self:zoom(0.7)
-            self:halign(1)
-            self:x(50)
-            self:y(50 + (i-1)*24)
+            self:halign(1) -- right align
+            self:x(10)
+            self:y(85 + (i-1)*24)
             self:diffuse(color("#aaaaaa"))
         end
     }
@@ -129,9 +129,9 @@ for i, label in ipairs(radar_lines) do
         Text="000 / 000",
         InitCommand=function(self)
             self:zoom(0.8)
-            self:halign(1)
-            self:x(110)
-            self:y(50 + (i-1)*24)
+            self:halign(1) -- right align
+            self:x(90)
+            self:y(85 + (i-1)*24)
             self:diffuse(color("#ffffff"))
         end,
         -- You can expand this to hook into hold note scores!
