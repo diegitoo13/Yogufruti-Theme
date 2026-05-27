@@ -6,7 +6,7 @@ t[#t+1] = Def.Quad {
     InitCommand=function(self)
         self:Center()
         :zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
-        :diffuse(color("#150F34"))
+        :diffuse(color("#0A0A1A"))
         :queuecommand("Refresh")
     end,
     ScreenChangedMessageCommand=function(self) self:queuecommand("Refresh") end,
@@ -18,7 +18,7 @@ t[#t+1] = Def.Quad {
         local NoSongs = #SONGMAN:GetPreferredSortSongs() == SONGMAN:GetNumSongs()
         
         if not ForcePurple then
-            self:linear(1):diffuse(BasicMode and (NoSongs and color("#340e13") or color("#0f2634")) or color("#150F34"))
+            self:linear(1):diffuse(BasicMode and (NoSongs and color("#340e13") or color("#0f2634")) or color("#0A0A1A"))
         end
     end
 }
@@ -28,7 +28,7 @@ t[#t+1] = Def.Sprite {
     Name="Gradient",
     Texture="gradient",
     InitCommand=function(self)
-        self:Center():diffuse(color("#6028bb"))
+        self:Center():diffuse(color("#00E5FF"))
         :queuecommand("Refresh")
     end,
     ScreenChangedMessageCommand=function(self) self:queuecommand("Refresh") end,
@@ -40,7 +40,7 @@ t[#t+1] = Def.Sprite {
         local NoSongs = #SONGMAN:GetPreferredSortSongs() == SONGMAN:GetNumSongs()
         
         if not ForcePurple then
-            self:linear(1):diffuse(BasicMode and (NoSongs and color("#bb3b28") or color("#285ebb")) or color("#6028bb"))
+            self:linear(1):diffuse(BasicMode and (NoSongs and color("#bb3b28") or color("#285ebb")) or color("#00E5FF"))
         end
     end
 }

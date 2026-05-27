@@ -13,7 +13,7 @@ return Def.ActorFrame {
             :halign(0.5):valign(0)
             :rotationx(84)
             :texcoordvelocity(0, 0.25)
-            :diffuse(color("#c350f3"))
+            :diffuse(color("#FF00AA"))
             :diffusealpha(0.5)
             :fadebottom(1)
             if IsAnniversary() then self:queuecommand("Rainbow") else self:queuecommand("Refresh") end
@@ -23,7 +23,7 @@ return Def.ActorFrame {
             local BasicMode = getenv("IsBasicMode")
             local NoSongs = #SONGMAN:GetPreferredSortSongs() == SONGMAN:GetNumSongs()
             
-            self:linear(1):diffuse(BasicMode and (NoSongs and color("#f36b4f") or color("#5086f3")) or color("#c350f3")):diffusealpha(0.5)
+            self:linear(1):diffuse(BasicMode and (NoSongs and color("#f36b4f") or color("#5086f3")) or color("#FF00AA")):diffusealpha(0.5)
         end,
         RainbowCommand=function(self) self:rainbow():effectperiod(10) end
     },
@@ -37,7 +37,7 @@ return Def.ActorFrame {
             :halign(0.5):valign(0)
             :rotationx(98)
             :texcoordvelocity(0, 0.25)
-            :diffuse(color("#c350f3"))
+            :diffuse(color("#FF00AA"))
             :diffusealpha(0.5)
             :fadebottom(1)
             if IsAnniversary() then self:queuecommand("Rainbow") else self:queuecommand("Refresh") end
@@ -47,7 +47,7 @@ return Def.ActorFrame {
             local BasicMode = getenv("IsBasicMode")
             local NoSongs = #SONGMAN:GetPreferredSortSongs() == SONGMAN:GetNumSongs()
             
-            self:linear(1):diffuse(BasicMode and (NoSongs and color("#f34f76") or color("#50c8f3")) or color("#c350f3")):diffusealpha(0.5)
+            self:linear(1):diffuse(BasicMode and (NoSongs and color("#f34f76") or color("#50c8f3")) or color("#FF00AA")):diffusealpha(0.5)
         end,
         RainbowCommand=function(self) self:rainbow():effectperiod(10) end
     }
