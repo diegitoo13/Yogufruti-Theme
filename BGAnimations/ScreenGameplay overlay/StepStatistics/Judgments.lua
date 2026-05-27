@@ -1,18 +1,4 @@
--- LiveStats.lua
--- Ported 1:1 visually from Simply Love TapNoteJudgments but adapted for Infinitesimal
-
 local pNum = GAMESTATE:GetMasterPlayerNumber()
-local liveStatsEnabled = LoadModule("Config.Load.lua")("LiveStats", CheckIfUserOrMachineProfile((pNum == PLAYER_1 and 0 or 1)).."/OutFoxPrefs.ini")
-
--- Disable if 2 players are joined or if the field is centered
-local numPlayers = GAMESTATE:GetNumPlayersEnabled()
-local isDouble = (GAMESTATE:GetCurrentStyle():GetStyleType() == "StyleType_OnePlayerTwoSides")
-local isCentered = (isDouble or Center1Player() or GAMESTATE:GetIsFieldCentered(pNum))
-
-if not liveStatsEnabled or numPlayers > 1 or isCentered then 
-    return Def.ActorFrame{} 
-end
-
 local row_height = 24
 local digits = 4
 local pattern = ("%%0%dd"):format(digits)
@@ -32,33 +18,15 @@ local TNS = {
 }
 
 local af = Def.ActorFrame{}
-af.Name="TapNoteJudgments"
-af.InitCommand=function(self)
-    -- Position it where the missing player would be
-    local targetX = (pNum == PLAYER_1) and (SCREEN_WIDTH * 0.75) or (SCREEN_WIDTH * 0.25)
-    self:x(targetX)
-    self:y(SCREEN_CENTER_Y - 40)
-    self:zoom(1.0)
-end
-
--- Add dark background behind stats like Simply Love StepStats
-af[#af+1] = Def.Quad {
-    InitCommand=function(self)
-        self:zoomto(260, 320)
-        self:diffuse(color("#00000088"))
-        self:y(30)
-    end
-}
 
 -- Banner
 af[#af+1] = Def.Sprite {
     InitCommand=function(self)
-        self:y(-120)
-        self:x(0)
+        self:y(-160)
         local song = GAMESTATE:GetCurrentSong()
         if song and song:HasBanner() then
             self:Load(song:GetBannerPath())
-            self:scaletofit(-100, -32, 100, 32)
+            self:scaletofit(-120, -38, 120, 38)
         end
     end
 }
@@ -68,9 +36,10 @@ for index, window in ipairs(TNS.Types) do
     af[#af+1] = LoadFont("Common Normal")..{
         Text=(pattern):format(0),
         InitCommand=function(self)
-            self:y((index-1)*row_height - 70)
-            self:x(90)
-            self:halign(1) -- right align
+            self:y((index-1)*row_height - 90)
+            self:x(20)
+            self:halign(0) -- left align
+            self:zoom(1.2)
             self:diffuse( TNS.Colors[index] )
             local leadingZeroAttr = { Length=(digits-1), Diffuse=Brightness(self:GetDiffuse(), 0.35) }
             self:AddAttribute(0, leadingZeroAttr )
@@ -103,57 +72,71 @@ for index, window in ipairs(TNS.Types) do
     af[#af+1] = LoadFont("Common Normal")..{
         Text=TNS.Names[index]:upper(),
         InitCommand=function(self)
-            self:zoom(0.8)
+            self:zoom(1.0)
             self:halign(1) -- right align
-            self:x(30)
-            self:y((index-1) * row_height - 70)
+            self:x(-20)
+            self:y((index-1) * row_height - 90)
             self:diffuse( TNS.Colors[index] )
         end,
     }
 end
 
--- Add Holds/Mines/Rolls skeleton to look like Simply Love
+-- Holds/Mines/Rolls tracking
 local radar_lines = {"Holds", "Mines", "Rolls"}
+local radar_scores = {
+    Holds = { hit=0, max=0 },
+    Mines = { hit=0, max=0 },
+    Rolls = { hit=0, max=0 }
+}
+
 for i, label in ipairs(radar_lines) do
     af[#af+1] = LoadFont("Common Normal")..{
         Text=label:lower(),
         InitCommand=function(self)
-            self:zoom(0.7)
+            self:zoom(0.9)
             self:halign(1) -- right align
-            self:x(10)
-            self:y(85 + (i-1)*24)
+            self:x(-20)
+            self:y(80 + (i-1)*24)
             self:diffuse(color("#aaaaaa"))
         end
     }
     af[#af+1] = LoadFont("Common Normal")..{
         Text="000 / 000",
         InitCommand=function(self)
-            self:zoom(0.8)
-            self:halign(1) -- right align
-            self:x(90)
-            self:y(85 + (i-1)*24)
+            self:zoom(1.0)
+            self:halign(0) -- left align
+            self:x(20)
+            self:y(80 + (i-1)*24)
             self:diffuse(color("#ffffff"))
+            
+            -- Pre-calculate max
+            local steps = GAMESTATE:GetCurrentSteps(pNum)
+            if steps then
+                local rv = steps:GetRadarValues(pNum)
+                if label == "Holds" then radar_scores.Holds.max = rv:GetValue("RadarCategory_Holds") end
+                if label == "Mines" then radar_scores.Mines.max = rv:GetValue("RadarCategory_Mines") end
+                if label == "Rolls" then radar_scores.Rolls.max = rv:GetValue("RadarCategory_Rolls") end
+            end
+            self:settext(("%03d / %03d"):format(0, radar_scores[label].max))
         end,
-        -- You can expand this to hook into hold note scores!
+        JudgmentMessageCommand=function(self, params)
+            if params.Player ~= pNum then return end
+            if GAMESTATE:GetPlayerState(pNum):GetPlayerOptions("ModsLevel_Song"):Autoplay() then return end
+            
+            if label == "Holds" and params.HoldNoteScore == "HoldNoteScore_Held" then
+                radar_scores.Holds.hit = radar_scores.Holds.hit + 1
+                self:settext(("%03d / %03d"):format(radar_scores.Holds.hit, radar_scores.Holds.max))
+            end
+            if label == "Rolls" and params.HoldNoteScore == "HoldNoteScore_Held" then
+                -- Note: in some versions Rolls and Holds are both 'Held', need to differentiate by tap note subtype if possible, or just merge them.
+                -- OutFox fires TapNoteScore for mines.
+            end
+            if label == "Mines" and params.TapNoteScore == "TapNoteScore_AvoidMine" then
+                radar_scores.Mines.hit = radar_scores.Mines.hit + 1
+                self:settext(("%03d / %03d"):format(radar_scores.Mines.hit, radar_scores.Mines.max))
+            end
+        end
     }
 end
-
--- Add EX Score (Percent)
-af[#af+1] = LoadFont("Common Normal")..{
-    InitCommand=function(self)
-        self:y(140)
-        self:x(110)
-        self:halign(1)
-        self:zoom(1.8)
-        self:diffuse(color("#ffffff"))
-        self:settext("0.00")
-    end,
-    JudgmentMessageCommand=function(self, params)
-        if params.Player ~= pNum then return end
-        local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pNum)
-        local dp = pss:GetPercentDancePoints() * 100
-        self:settext(string.format("%.2f", dp))
-    end
-}
 
 return af
