@@ -6,7 +6,8 @@ local liveStatsEnabled = LoadModule("Config.Load.lua")("LiveStats", CheckIfUserO
 
 -- Disable if 2 players are joined or if the field is centered
 local numPlayers = GAMESTATE:GetNumPlayersEnabled()
-local isCentered = (GetNotefieldX(pNum) == SCREEN_CENTER_X)
+local isDouble = (GAMESTATE:GetCurrentStyle():GetStyleType() == "StyleType_OnePlayerTwoSides")
+local isCentered = (isDouble or Center1Player() or GAMESTATE:GetIsFieldCentered(pNum))
 
 if not liveStatsEnabled or numPlayers > 1 or isCentered then 
     return Def.ActorFrame{} 
@@ -78,7 +79,7 @@ for index, window in ipairs(TNS.Types) do
             if params.Player ~= pNum then return end
             if params.HoldNoteScore then return end
             if not params.TapNoteScore then return end
-            if IsAutoplay(pNum) then return end
+            if GAMESTATE:GetPlayerState(pNum):GetPlayerOptions("ModsLevel_Song"):Autoplay() then return end
 
             local incremented = false
             if ToEnumShortString(params.TapNoteScore) == window then
