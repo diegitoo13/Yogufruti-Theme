@@ -61,7 +61,11 @@ CustomBranch = {
         if GAMESTATE:IsEventMode() then
             return SelectMusicOrCourse()
         elseif STATSMAN:GetCurStageStats():AllFailed() then
-            return GameOverOrContinue()
+            if GAMESTATE:AnyPlayerHasRankingFeats() then
+                return "ScreenNameEntryTraditional"
+            else
+                return GameOverOrContinue()
+            end
         end
         
         -- If a player has ran out of stages, unjoin them
@@ -71,7 +75,11 @@ CustomBranch = {
         -- This is done so that if a player has joined mid
         -- session can still play the rest of their stages.
         if GAMESTATE:GetNumSidesJoined() <= 0 then
-            return GameOverOrContinue()
+            if GAMESTATE:AnyPlayerHasRankingFeats() then
+                return "ScreenNameEntryTraditional"
+            else
+                return GameOverOrContinue()
+            end
         else
             return SelectMusicOrCourse()
         end

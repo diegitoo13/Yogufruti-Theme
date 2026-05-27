@@ -29,7 +29,7 @@ function ResetLuaMods(pn)
 	LoadModule("Config.Save.lua")("GroupSubIndex", 0, ProfileDir)
 	LoadModule("Config.Save.lua")("SongIndex", 0, ProfileDir)
     if IsArcade() or (CarryJudgment == false) then
-        LoadModule("Config.Save.lua")("SmartTimings",tostring("Pump Normal"),"Save/OutFoxPrefs.ini")
+        LoadModule("Config.Save.lua")("SmartTimings",tostring("Original"),"Save/OutFoxPrefs.ini")
     end
 end
 
@@ -45,7 +45,7 @@ end
 
 -- Lua Timing currently does not change these parameters, so the best we can do is
 -- look at the current mode on boot up and change to the proper values
-TimingMode = LoadModule("Config.Load.lua")("SmartTimings","Save/OutFoxPrefs.ini") or "Unknown"
+TimingMode = LoadModule("Config.Load.lua")("SmartTimings","Save/OutFoxPrefs.ini") or "Original"
 
 function ComboContinue()
     local Continue = {
@@ -301,3 +301,12 @@ function AssembleBasicMode()
     fHandle:destroy()
     Trace("Done!")
 end
+
+function GetCurNSAlpha(player)
+    local playerstate = GAMESTATE:GetPlayerState(player)
+    if not playerstate then return 1.0 end
+    local playeroptions = playerstate:GetPlayerOptions('ModsLevel_Current')
+    local fDark = playeroptions and playeroptions:Dark() or 0
+    return 1.0 - fDark
+end
+

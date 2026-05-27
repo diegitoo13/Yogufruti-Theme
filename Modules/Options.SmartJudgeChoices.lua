@@ -1,5 +1,26 @@
 return function(Mode)
 	local JG = LoadModule("Options.SmartJudgments.lua")("Show")
+	
+	-- Scan local theme skins and add them to JG for portability
+	local themeDir = THEME:GetCurrentThemeDirectory()
+	local localSkins = FILEMAN:GetDirListing(themeDir .. "JudgmentSkins/", true, false)
+	for _, folder in ipairs(localSkins) do
+		if FILEMAN:DoesFileExist(themeDir .. "JudgmentSkins/" .. folder .. "/info.ini") then
+			local capName = folder:gsub("^%l", string.upper)
+			local nameWithSuffix = capName .. " [Pump]"
+			local isDup = false
+			for _, existing in ipairs(JG) do
+				if existing == nameWithSuffix then
+					isDup = true
+					break
+				end
+			end
+			if not isDup then
+				table.insert(JG, nameWithSuffix)
+			end
+		end
+	end
+
 	local TW = nil
 	local Name = ""
 

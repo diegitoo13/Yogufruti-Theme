@@ -1,6 +1,38 @@
 local sPlayer = Var "Player"
 
 local function GetTexture()
+    local skinName = "default"
+    if THEME:GetMetric("Common","UseAdvancedJudgments") then 
+        if GAMESTATE:IsDemonstration() then
+            skinName = THEME:GetMetric("Common","DefaultJudgment")
+        else
+            skinName = LoadModule("Config.Load.lua")("SmartJudgments", CheckIfUserOrMachineProfile(string.sub(sPlayer,-1)-1).."/OutFoxPrefs.ini") or THEME:GetMetric("Common","DefaultJudgment")
+        end
+    end
+    
+    local cleanName = string.lower(skinName)
+    cleanName = string.match(cleanName, "^(.-)%s*%[") or cleanName
+    
+    local function searchDir(checkDir)
+        local files = FILEMAN:GetDirListing(checkDir, false, false)
+        if files and #files > 0 then
+            for _, file in ipairs(files) do
+                if string.find(string.lower(file), "judgment") then
+                    return checkDir .. file
+                end
+            end
+        end
+        return nil
+    end
+
+    -- 1. Local theme directory
+    local file = searchDir("../JudgmentSkins/" .. cleanName .. "/")
+    if file then return file end
+
+    -- 2. Global directory
+    file = searchDir("/JudgmentSkins/" .. cleanName .. "/")
+    if file then return file end
+
     if THEME:GetMetric("Common","UseAdvancedJudgments") then 
         if GAMESTATE:IsDemonstration() then
             return LoadModule("Options.SmartJudgments.lua")()[LoadModule("Options.ChoiceToValue.lua")(LoadModule("Options.SmartJudgments.lua")("Show"),THEME:GetMetric("Common","DefaultJudgment"))] 
@@ -57,8 +89,9 @@ return Def.ActorFrame {
         local Prot = self:GetChild("Protiming")
         local OFB = self:GetChild("OffsetBar")
         if params.Player ~= sPlayer then return end
-        if params.HoldNoteScore then return end
-        if string.find(params.TapNoteScore, "Mine") then return end
+        local sScore = params.TapNoteScore and tostring(params.TapNoteScore) or ""
+        if params.HoldNoteScore or sScore == "TapNoteScore_CheckpointHit" then return end
+        if string.find(sScore, "Mine") then return end
         if self:GetName() ~= "Judgment" then
             if IsGame("po-mu") then
                 if PomuLocation[GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()][params.FirstTrack] ~= tonumber(ToEnumShortString(self:GetName())) then return end
@@ -77,16 +110,30 @@ return Def.ActorFrame {
             IsDouble = true
         end
 
-        for i = 1,#Name do
-            if params.TapNoteScore == "TapNoteScore_"..Name[i] then iFrame = i-1 end
-        end
+        if iNumFrames == 7 then
+            local mapping = {
+                TapNoteScore_W1 = 0,
+                TapNoteScore_W2 = 3,
+                TapNoteScore_W3 = 2,
+                TapNoteScore_W4 = 4,
+                TapNoteScore_W5 = 4,
+                TapNoteScore_Miss = 5,
+                TapNoteScore_CheckpointMiss = 5,
+                TapNoteScore_CheckpointHit = 6,
+            }
+            iFrame = mapping[sScore]
+        else
+            for i = 1,#Name do
+                if sScore == "TapNoteScore_"..Name[i] then iFrame = i-1 end
+            end
 
-        if params.TapNoteScore == "TapNoteScore_Miss" or 
-        params.TapNoteScore == "TapNoteScore_CheckpointMiss" then
-            iFrame = (IsDouble and (iNumFrames * .5) or iNumFrames)-1
+            if sScore == "TapNoteScore_Miss" or 
+            sScore == "TapNoteScore_CheckpointMiss" then
+                iFrame = (IsDouble and (iNumFrames * .5) or iNumFrames)-1
+            end
+            
+            if sScore == "TapNoteScore_CheckpointHit" then iFrame = 0 end
         end
-        
-        if params.TapNoteScore == "TapNoteScore_CheckpointHit" then iFrame = 0 end
 
         if not iFrame then return end
         if IsDouble then
@@ -106,7 +153,7 @@ return Def.ActorFrame {
         Prot:visible(bProtiming)
         OFB:GetChild("Background"):visible(bOffsetBar)
         
-        if not (params.TapNoteScore == "TapNoteScore_CheckpointHit" or params.TapNoteScore == "TapNoteScore_CheckpointMiss" or params.TapNoteScore == "TapNoteScore_Miss" ) then
+        if not (sScore == "TapNoteScore_CheckpointHit" or sScore == "TapNoteScore_CheckpointMiss" or sScore == "TapNoteScore_Miss" ) then
             
             -- Manage MS timing
             Prot:finishtweening():diffusealpha(1)

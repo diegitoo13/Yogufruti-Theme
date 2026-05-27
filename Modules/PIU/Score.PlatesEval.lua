@@ -9,6 +9,12 @@ return function(PlayerScore)
     local TNSGood = "TapNoteScore_W" .. (PumpTiming and "3" or "4")
     local TNSBad = "TapNoteScore_W" .. (PumpTiming and "4" or "5")
 	local FailGrade = PlayerScore:GetGrade()
+    local bFailed = false
+    if PlayerScore.GetFailed then
+        bFailed = PlayerScore:GetFailed()
+    else
+        bFailed = (FailGrade == "Grade_Failed" or FailGrade == "Failed" or tostring(FailGrade) == "Grade_Failed")
+    end
     local Checkpoints = PlayerScore:GetTapNoteScores("TapNoteScore_CheckpointHit")
     local Superbs 	= PumpTiming and 0 or PlayerScore:GetTapNoteScores("TapNoteScore_W1")
     local Perfects 	= PlayerScore:GetTapNoteScores(TNSPerfect) + Checkpoints
@@ -19,7 +25,9 @@ return function(PlayerScore)
                       PlayerScore:GetTapNoteScores("TapNoteScore_CheckpointMiss")
 
     -- The good ol' if staircase
-    if Misses == 0 then
+    if bFailed then
+        PlateText = "Fail"
+    elseif Misses == 0 then
         if Bads == 0 then
             if Goods == 0 then
                 if Greats == 0 then
@@ -39,10 +47,8 @@ return function(PlayerScore)
         PlateText = "Talented"
     elseif Misses <= 20 then
         PlateText = "Fair"
-    elseif FailGrade ~= "Grade_Failed" then
+    else
         PlateText = "Rough"
-	else
-        PlateText = "Fail"
     end
 
     return PlateText .. "Game"

@@ -66,7 +66,7 @@ return {
     {
         GenForOther = {"SmartJudgments", LoadModule("Options.SmartJudgeChoices.lua")},
         GenForUserPref = true,
-        Default = TimingModes[3],
+        Default = "Original",
         Choices = TimingModes,
         Values = TimingModes
     },
@@ -119,7 +119,7 @@ return {
     },
     BasicMode =
     {
-        Default = true,
+        Default = false,
         Choices = { OptionNameString('Off'), OptionNameString('On') },
         Values = {false, true}
     },
@@ -209,9 +209,9 @@ return {
     },
     ScoringSystem =
     {
-        Default = "Old",
-        Choices = { OptionNameString('Old'), OptionNameString('New') },
-        Values = { "Old", "New" }
+        Default = "Phoenix",
+        Choices = { OptionNameString('Old'), OptionNameString('New'), OptionNameString('Phoenix') },
+        Values = { "Old", "New", "Phoenix" }
     },
     ClassicGrades =
     {

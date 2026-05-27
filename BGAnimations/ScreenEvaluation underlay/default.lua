@@ -1,6 +1,10 @@
 local CenterPressCount = 0
 local CenterPress3xEnabled = LoadModule("Config.Load.lua")("EvalCenter3xExit", "Save/OutFoxPrefs.ini")
-local Scoring = LoadModule("Config.Load.lua")("ScoringSystem", "Save/OutFoxPrefs.ini") or "Old"
+local TimingMode = LoadModule("Config.Load.lua")("SmartTimings", "Save/OutFoxPrefs.ini") or "Original"
+local Scoring = LoadModule("Config.Load.lua")("ScoringSystem", "Save/OutFoxPrefs.ini") or "Phoenix"
+if TimingMode == "Pump Phoenix" then
+    Scoring = "Phoenix"
+end
 local ClassicGrades = LoadModule("Config.Load.lua")("ClassicGrades", "Save/OutFoxPrefs.ini") and Scoring == "Old"
 local AdvScoresShown = false
 local BasicMode = getenv("IsBasicMode")
@@ -14,6 +18,34 @@ local GradePriority = {
     PassB = 9, FailB = 10, PassC = 11, FailC = 12, PassD = 13, FailD = 14, PassF = 15, FailF = 16
 }
 local Plates = { PlayerNumber_P1 = "RoughGame", PlayerNumber_P2 = "RoughGame" }
+local PhoenixPlateToState = {
+    PerfectGame    = 0, -- PG
+    UltimateGame   = 1, -- UG
+    ExtremeGame    = 2, -- EG
+    SuperbGame     = 3, -- SB / SG
+    MarvelousGame  = 4, -- MG
+    TalentedGame   = 5, -- TG
+    FairGame       = 6, -- FG
+    RoughGame      = 7  -- RG
+}
+local PhoenixGradeToState = {
+    ["3PS"]  = 0,
+    ["3S"]   = 1,
+    ["2PS"]  = 2,
+    ["2S"]   = 3,
+    ["PS"]   = 4,
+    ["S"]    = 5,
+    ["3PA"]  = 6,
+    ["3A"]   = 7,
+    ["2PA"]  = 8,
+    ["2A"]   = 9,
+    ["PA"]   = 10,
+    ["A"]    = 11,
+    ["B"]    = 12,
+    ["C"]    = 13,
+    ["D"]    = 14,
+    ["F"]    = 15
+}
 
 local function InputHandler(event)
     local pn = event.PlayerNumber
@@ -88,6 +120,9 @@ t[#t+1] = Def.ActorFrame {
             details = string.len(details) < 128 and details or string.sub(details, 1, 124) .. "..."
             local Difficulty = ToEnumShortString(ToEnumShortString((StepOrTrails:GetStepsType()))) .. " " .. StepOrTrails:GetMeter()
             local Percentage = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn):GetPercentDancePoints()
+            if Scoring == "Phoenix" or Scoring == "New" then
+                Percentage = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn):GetScore() / 1000000
+            end
             local states = Difficulty .. " (" .. string.format( "%.2f%%", Percentage*100) .. ")"
             GAMESTATE:UpdateDiscordProfile(GAMESTATE:GetPlayerDisplayName(pn))
             GAMESTATE:UpdateDiscordScreenInfo(details, states, 1)
@@ -127,9 +162,22 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                 local PlayerScore = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
                 Grades[pn] = LoadModule("PIU/Score.GradingEval.lua")(PlayerScore)
 
-                self:Load(THEME:GetPathG("", "LetterGrades/" .. (ClassicGrades and "" or "New/") .. Grades[pn]))
-                :diffusealpha(0):sleep(2):easeoutexpo(0.25)
-                :zoom(GradeZoom):diffusealpha(1)
+                if Scoring == "Phoenix" then
+                    local condition = string.sub(Grades[pn], 1, 4) -- "Pass" or "Fail"
+                    local gradeName = string.sub(Grades[pn], 5)    -- "C", "3PS", etc.
+                    local gradeState = PhoenixGradeToState[gradeName] or 15
+                    local textureName = (condition == "Fail") and "fail_pass_res" or "pass_res"
+                    
+                    self:Load(THEME:GetPathG("", "LetterGrades/New/" .. textureName))
+                    :animate(false)
+                    :setstate(gradeState)
+                    :diffusealpha(0):sleep(2):easeoutexpo(0.25)
+                    :zoom(GradeZoom):diffusealpha(1)
+                else
+                    self:Load(THEME:GetPathG("", "LetterGrades/" .. (ClassicGrades and "" or "New/") .. Grades[pn]))
+                    :diffusealpha(0):sleep(2):easeoutexpo(0.25)
+                    :zoom(GradeZoom):diffusealpha(1)
+                end
             end
 		},
 
@@ -141,9 +189,22 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                 local PlayerScore = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
                 Grades[pn] = LoadModule("PIU/Score.GradingEval.lua")(PlayerScore)
 
-                self:Load(THEME:GetPathG("", "LetterGrades/" .. (ClassicGrades and "" or "New/") .. Grades[pn]))
-                :diffusealpha(0):sleep(2.15):diffusealpha(0.8):zoom(GradeZoom):linear(0.75)
-                :zoom(GradeZoom * 1.5):diffusealpha(0)
+                if Scoring == "Phoenix" then
+                    local condition = string.sub(Grades[pn], 1, 4)
+                    local gradeName = string.sub(Grades[pn], 5)
+                    local gradeState = PhoenixGradeToState[gradeName] or 15
+                    local textureName = (condition == "Fail") and "fail_pass_res" or "pass_res"
+                    
+                    self:Load(THEME:GetPathG("", "LetterGrades/New/" .. textureName))
+                    :animate(false)
+                    :setstate(gradeState)
+                    :diffusealpha(0):sleep(2.15):diffusealpha(0.8):zoom(GradeZoom):linear(0.75)
+                    :zoom(GradeZoom * 1.5):diffusealpha(0)
+                else
+                    self:Load(THEME:GetPathG("", "LetterGrades/" .. (ClassicGrades and "" or "New/") .. Grades[pn]))
+                    :diffusealpha(0):sleep(2.15):diffusealpha(0.8):zoom(GradeZoom):linear(0.75)
+                    :zoom(GradeZoom * 1.5):diffusealpha(0)
+                end
             end
         },
 
@@ -154,7 +215,7 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
         }
     }
 
-    if Scoring == "New" then
+    if Scoring == "New" or Scoring == "Phoenix" then
         t[#t+1] = Def.ActorFrame {
             Def.Sprite {
                 InitCommand=function(self)
@@ -164,9 +225,26 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                     local PlayerScore = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
                     Plates[pn] = LoadModule("PIU/Score.PlatesEval.lua")(PlayerScore)
 
-                    self:Load(THEME:GetPathG("", "LetterGrades/New/" .. Plates[pn]))
-                    :diffusealpha(0):sleep(2):easeoutexpo(0.25)
-                    :zoom(PlateZoom):diffusealpha(1)
+                    if Scoring == "Phoenix" then
+                        local plateState = PhoenixPlateToState[Plates[pn]]
+                        if plateState then
+                            self:Load(THEME:GetPathG("", "LetterGrades/New/ac_play"))
+                            :animate(false)
+                            :setstate(plateState)
+                            :visible(true)
+                            :shadowlength(3)
+                            :zoom(PlateZoom * 2.14)
+                            :diffusealpha(0):sleep(2):linear(0.13)
+                            :diffusealpha(1):zoom(PlateZoom)
+                        else
+                            self:visible(false)
+                        end
+                    else
+                        self:Load(THEME:GetPathG("", "LetterGrades/New/" .. Plates[pn]))
+                        :visible(true)
+                        :diffusealpha(0):sleep(2):easeoutexpo(0.25)
+                        :zoom(PlateZoom):diffusealpha(1)
+                    end
                 end
             },
 
@@ -178,9 +256,25 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                     local PlayerScore = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
                     Plates[pn] = LoadModule("PIU/Score.PlatesEval.lua")(PlayerScore)
 
-                    self:Load(THEME:GetPathG("", "LetterGrades/New/" .. Plates[pn]))
-                    :diffusealpha(0):sleep(2.15):diffusealpha(0.8):zoom(PlateZoom):linear(0.75)
-                    :zoom(PlateZoom * 1.5):diffusealpha(0)
+                    if Scoring == "Phoenix" then
+                        local plateState = PhoenixPlateToState[Plates[pn]]
+                        if plateState then
+                            self:Load(THEME:GetPathG("", "LetterGrades/New/ac_play"))
+                            :animate(false)
+                            :setstate(plateState)
+                            :visible(true)
+                            :zoom(PlateZoom * 2.14)
+                            :diffusealpha(0):sleep(2.13):diffusealpha(0.8):zoom(PlateZoom):linear(0.75)
+                            :zoom(PlateZoom * 1.5):diffusealpha(0)
+                        else
+                            self:visible(false)
+                        end
+                    else
+                        self:Load(THEME:GetPathG("", "LetterGrades/New/" .. Plates[pn]))
+                        :visible(true)
+                        :diffusealpha(0):sleep(2.15):diffusealpha(0.8):zoom(PlateZoom):linear(0.75)
+                        :zoom(PlateZoom * 1.5):diffusealpha(0)
+                    end
                 end
             }
         }

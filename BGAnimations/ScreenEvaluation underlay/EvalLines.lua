@@ -1,5 +1,8 @@
 local CurPrefTiming = LoadModule("Options.ReturnCurrentTiming.lua")().Name
 local Scoring = LoadModule("Config.Load.lua")("ScoringSystem", "Save/OutFoxPrefs.ini") or "Old"
+if CurPrefTiming == "Pump Phoenix" then
+    Scoring = "Phoenix"
+end
 local Name, Length = LoadModule("Options.SmartTapNoteScore.lua")()
 table.sort(Name)
 Name[#Name+1] = "Miss"
@@ -23,7 +26,11 @@ local function GetJLineValue(line, pl)
     elseif line == "MaxCombo" then
         return PSS:MaxCombo()
     elseif line == "Accuracy" then
-        return round(PSS:GetPercentDancePoints() * 100, 2) .. "%"
+        if Scoring == "Phoenix" or Scoring == "New" then
+            return round((PSS:GetScore() / 1000000) * 100, 2) .. "%"
+        else
+            return round(PSS:GetPercentDancePoints() * 100, 2) .. "%"
+        end
     elseif line == "Score" then -- jank
         local PSS_Score = PSS:GetScore()
         local PrevHighScore = nil
@@ -34,11 +41,11 @@ local function GetJLineValue(line, pl)
         end
 
         if PROFILEMAN:GetProfile(pl) and PrevHighScore and PSS_Score > PrevHighScore then
-            local ScoreUp = string.format("[+%s]", (Scoring == "New" and FormatScore((PSS_Score - PrevHighScore)) or (PSS_Score - PrevHighScore)))
-            return string.format("%d %s", (Scoring == "New" and FormatScore(PSS_Score) or PSS_Score), ScoreUp)
+            local ScoreUp = string.format("[+%s]", ((Scoring == "New" or Scoring == "Phoenix") and FormatScore((PSS_Score - PrevHighScore)) or (PSS_Score - PrevHighScore)))
+            return string.format("%s %s", ((Scoring == "New" or Scoring == "Phoenix") and FormatScore(PSS_Score) or PSS_Score), ScoreUp)
         end
         
-        return (Scoring == "New" and FormatScore(PSS_Score) or PSS_Score)
+        return ((Scoring == "New" or Scoring == "Phoenix") and FormatScore(PSS_Score) or PSS_Score)
     else
         return PSS:GetTapNoteScores("TapNoteScore_" .. line)
     end

@@ -1,13 +1,18 @@
 local pn = ...
-local TimingMode = LoadModule("Config.Load.lua")("SmartTimings","Save/OutFoxPrefs.ini") or "Unknown"
-local Scoring = LoadModule("Config.Load.lua")("ScoringSystem", "Save/OutFoxPrefs.ini") or "Old"
+local TimingMode = LoadModule("Config.Load.lua")("SmartTimings","Save/OutFoxPrefs.ini") or "Original"
+local Scoring = LoadModule("Config.Load.lua")("ScoringSystem", "Save/OutFoxPrefs.ini") or "Phoenix"
+if TimingMode == "Pump Phoenix" then
+    Scoring = "Phoenix"
+end
 local ShouldReverse = LoadModule("Config.Load.lua")("LifePositionBelow","Save/OutFoxPrefs.ini")
 
-local BarW = math.ceil(GAMESTATE:GetCurrentStyle():GetWidth(pn) * 1.5)
-if BarW > SCREEN_WIDTH then BarW = SCREEN_WIDTH - 80 end
-if (GAMESTATE:GetNumPlayersEnabled() > 1 or GAMESTATE:GetCurrentStyle():GetStyleType() == "StyleType_OnePlayerOneSide")
-    and BarW > SCREEN_WIDTH / 2 then BarW = BarW / 2 end 
-local BarH = 30
+local styleType = GAMESTATE:GetCurrentStyle():GetStyleType()
+local isDouble = (styleType == "StyleType_OnePlayerTwoSides" or styleType == "StyleType_TwoPlayersSharedSides")
+
+local BarW = isDouble and 754 or 388
+local BarH = 34
+local MeterW = isDouble and 736 or 370
+local MeterH = 20
 
 local MeterHot = false
 local MeterHotPro = false
@@ -72,16 +77,12 @@ local t = Def.ActorFrame {
             local LifeAmount = params.Life or 0.5
 
             if LifeAmount <= 0.33 and not MeterDanger then
-                self:GetChild("BarBody"):diffusebottomedge(Color.Red)
-                self:GetChild("BarEdgeL"):diffusebottomedge(Color.Red)
-                self:GetChild("BarEdgeR"):diffusetopedge(Color.Red) -- This one is flipped :)
+                self:GetChild("Meter"):setstate(1) -- Switch to Red (state 1)
 		        self:GetChild("Tip"):visible(0)
 		        self:GetChild("Tip-Danger"):visible(1)
                 MeterDanger = true
             elseif LifeAmount > 0.33 and MeterDanger and not MeterFail then
-                self:GetChild("BarBody"):stoptweening():linear(0.5):diffusebottomedge(Color.White)
-                self:GetChild("BarEdgeL"):stoptweening():linear(0.5):diffusebottomedge(Color.White)
-                self:GetChild("BarEdgeR"):stoptweening():linear(0.5):diffusetopedge(Color.White)
+                self:GetChild("Meter"):setstate(pn == PLAYER_1 and 0 or 1) -- Switch back to P1 (0) / P2 (1)
 		        self:GetChild("Tip-Danger"):visible(0)
                 MeterDanger = false
             end
@@ -103,26 +104,26 @@ local t = Def.ActorFrame {
 					MeterHot = false
 				end
 
-				self:GetChild("Meter"):finishtweening():x(MeterHot and 0 or -20):linear(0.1):cropright(1 - LifeAmount)
-				self:GetChild("Pulse"):finishtweening():linear(0.1):x(-(((BarW - 12) / 2) - ((BarW - 12) * LifeAmount)) - 20)
+				self:GetChild("Meter"):finishtweening():linear(0.1):cropright(1 - LifeAmount)
+				self:GetChild("Pulse"):finishtweening():linear(0.1):cropright(1 - LifeAmount)
 
 				local ProLifeAmount = ProLifebarCrop * (LifeAmount - 1)
 				if ProLifeAmount < 0 then ProLifeAmount = 0 end
 
-				self:GetChild("ProMeter"):finishtweening():x(MeterHotPro and 0 or -20):linear(0.1):cropright(1 - ProLifeAmount)
-				self:GetChild("ProPulse"):finishtweening():linear(0.1):x(-(((BarW - 12) / 2) - ((BarW - 12) * ProLifeAmount)) - 20)
+				self:GetChild("ProMeter"):finishtweening():linear(0.1):cropright(1 - ProLifeAmount)
+				self:GetChild("ProPulse"):finishtweening():linear(0.1):cropright(1 - ProLifeAmount)
 				
 				-- lifebar tip for the pro meter
 				-- make sure the pro tip only appears when you actually have pro lifebar available, and hide it like usual when capped
 				-- this could probably be done better but it works so whatever :V
 				if ProLifeAmount <= 0 then
-					self:GetChild("Tip-Pro"):finishtweening():linear(0.1):x(-(((BarW - 12) / 2) - (0)))
+					self:GetChild("Tip-Pro"):finishtweening():linear(0.1):x(-(((MeterW) / 2) - (0)))
 					self:GetChild("Tip-Pro"):visible(0)
 				elseif ProLifeAmount > 0 and ProLifeAmount <= 0.999 and not MeterHotPro then
-					self:GetChild("Tip-Pro"):finishtweening():linear(0.1):x(-(((BarW - 12) / 2) - ((BarW - 12) * ProLifeAmount)))
+					self:GetChild("Tip-Pro"):finishtweening():linear(0.1):x(-(((MeterW) / 2) - ((MeterW) * ProLifeAmount)))
 					self:GetChild("Tip-Pro"):visible(1)
 				elseif ProLifeAmount >=1 or MeterHotPro then
-					self:GetChild("Tip-Pro"):finishtweening():linear(0.1):x(-(((BarW - 12) / 2) - ((BarW - 12) * 1)))
+					self:GetChild("Tip-Pro"):finishtweening():linear(0.1):x(-(((MeterW) / 2) - ((MeterW) * 1)))
 					self:GetChild("Tip-Pro"):visible(0)
 				end
 			else
@@ -135,17 +136,17 @@ local t = Def.ActorFrame {
 					MeterHot = false
 				end
 
-				self:GetChild("Meter"):finishtweening():x(MeterHot and 0 or -20):linear(0.1):cropright(1 - LifeAmount)
-				self:GetChild("Pulse"):finishtweening():linear(0.1):x(-(((BarW - 12) / 2) - ((BarW - 12) * LifeAmount)) - 20)
+				self:GetChild("Meter"):finishtweening():linear(0.1):cropright(1 - LifeAmount)
+				self:GetChild("Pulse"):finishtweening():linear(0.1):cropright(1 - LifeAmount)
 			end
 			
-			self:GetChild("Tip"):finishtweening():linear(0.1):x(-(((BarW - 12) / 2) - ((BarW - 12) * LifeAmount)))
-			self:GetChild("Tip-Danger"):finishtweening():linear(0.1):x(-(((BarW - 12) / 2) - ((BarW - 12) * LifeAmount)))
+			self:GetChild("Tip"):finishtweening():linear(0.1):x(-(((MeterW) / 2) - ((MeterW) * LifeAmount)))
+			self:GetChild("Tip-Danger"):finishtweening():linear(0.1):x(-(((MeterW) / 2) - ((MeterW) * LifeAmount)))
 			
 			-- garbage to make sure that the lifebar actually tweens properly and doesn't just run away from the edge of the lifebar
 			-- extra tweening despite lifebar being capped out is just to ensure less jank when the lifebar exits a 'hot' state
 			if LifeAmount >=1 and MeterHot and not MeterFail then
-				self:GetChild("Tip"):finishtweening():linear(0.1):x(-(((BarW - 12) / 2) - ((BarW - 12) * 1)))
+				self:GetChild("Tip"):finishtweening():linear(0.1):x(-(((MeterW) / 2) - ((MeterW) * 1)))
 				self:GetChild("Tip"):visible(0)
 		    elseif LifeAmount > 0.33 and not MeterDanger and not MeterFail then
 				self:GetChild("Tip"):visible(1)
@@ -154,7 +155,7 @@ local t = Def.ActorFrame {
 			-- gdi i forgot about the danger/fail tip fleeing too if you lose it when failing
 			-- this took way too long to figure out for whatever reason aaaaaaaaaa
 			if LifeAmount >=1 and MeterFail then
-			    self:GetChild("Tip-Danger"):finishtweening():linear(0.1):x(-(((BarW - 12) / 2) - ((BarW - 12) * 1)))
+			    self:GetChild("Tip-Danger"):finishtweening():linear(0.1):x(-(((MeterW) / 2) - ((MeterW) * 1)))
 				self:GetChild("Tip-Danger"):visible(0)
 		    elseif LifeAmount > 0 and LifeAmount <= 0.999 and MeterFail then
 				self:GetChild("Tip-Danger"):visible(1)
@@ -163,94 +164,86 @@ local t = Def.ActorFrame {
             local PlayerOptions = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
             if LifeAmount <= 0 and not MeterFail then
                 MeterFail = true
+                self:GetChild("Meter"):setstate(2) -- Switch to Grey/Failed (state 2)
             elseif LifeAmount > 0 and MeterFail and (PlayerOptions:FailSetting() == "FailType_Off") then
                 MeterFail = false
+                self:GetChild("Meter"):setstate(pn == PLAYER_1 and 0 or 1)
             end
         end
     end,
 
-    Def.Sprite {
-        Name="Avatar",
-        Texture=LoadModule("Options.GetProfileData.lua")(pn)["Image"],
-        InitCommand=function(self)
-            self:scaletofit(0, 0, 30, 30)
-            :xy(pn == PLAYER_1 and -BarW / 2 - 15 or BarW / 2 + 15, 0)
-        end
-    },
+
 
     Def.Sprite {
         Name="BarBody",
-        Texture=THEME:GetPathG("", "UI/BarBody"),
+        Texture=isDouble and "../../Phoenix/SG-BACKBARDOUBLE 1x2.PNG" or "../../Phoenix/SG-BACKBARONE 1x2.PNG",
         InitCommand=function(self)
-            self:setsize(BarW - 12, BarH)
+            self:animate(false)
+            :setstate(pn == PLAYER_1 and 0 or 1)
+            :zoomto(BarW, BarH)
         end
     },
 
-    Def.Sprite {
+    Def.Quad {
         Name="BarEdgeL",
-        Texture=THEME:GetPathG("", "UI/BarEdge"),
         InitCommand=function(self)
-            self:x(-BarW / 2):halign(0)
+            self:visible(false):zoomto(0, 0)
         end
     },
 
     Def.Sprite {
         Name="BarEdgeR",
-        Texture=THEME:GetPathG("", "UI/BarEdge"),
         InitCommand=function(self)
-            self:x(BarW / 2):halign(0):rotationz(180)
+            self:visible(false):zoomto(0, 0)
         end
     },
 
-    Def.Quad {
+    Def.Sprite {
         Name="Mask",
+        Texture="../../Phoenix/SG-MASKBAR.PNG",
         InitCommand=function(self)
-            self:zoomto(BarW - 12, BarH - 12)
-            :diffuse(color(1,1,1,1))
+            self:zoomto(MeterW, MeterH)
             :MaskSource()
         end
     },
 
-    Def.Quad {
+    Def.Sprite {
         Name="Meter",
+        Texture=isDouble and "../../Phoenix/SG-REALBARDOUBLE 1x3.png" or "../../Phoenix/SG-REALBARONE 1x3.png",
         InitCommand=function(self)
-            self:zoomto(BarW - 12, BarH - 12):x(-20):cropright(0.5)
-            :diffuse(pn == PLAYER_1 and color("#f7931e") or color("#ab78f5"))
-            :diffusebottomedge(pn == PLAYER_1 and color("#ed1e79") or color("#1fbcff"))
+            self:animate(false)
+            :setstate(pn == PLAYER_1 and 0 or 1)
+            :zoomto(MeterW, MeterH)
+            :cropright(0.5)
             :MaskDest():ztestmode("ZTestMode_WriteOnFail")
         end
     },
 
-    Def.Quad {
+    Def.Sprite {
         Name="Pulse",
+        Texture="../../Phoenix/SG-PULSE.png",
         InitCommand=function(self)
-            self:zoomto(20, BarH - 12):halign(0)
-            :diffuse(pn == PLAYER_1 and color("#f7931e") or color("#ab78f5"))
-            :diffusebottomedge(pn == PLAYER_1 and color("#ed1e79") or color("#1fbcff"))
-
-            self:bounce():effectmagnitude(-20,0,0):effectclock("bgm"):effecttiming(1,0,0,0)
-            :MaskDest():ztestmode("ZTestMode_WriteOnFail")
+            self:visible(false)
         end
     },
 
-	Def.Quad {
+	Def.Sprite {
         Name="ProMeter",
+        Texture=isDouble and "../../Phoenix/SG-GLOWBARDOUBLEP 1x4.png" or "../../Phoenix/SG-GLOWBARONEP 1x4.png",
         InitCommand=function(self)
-            self:zoomto(BarW - 12, BarH - 12):x(-20):cropright(1)
-            :diffuse(pn == PLAYER_1 and color("#f7931e") or color("#ab78f5"))
-            :diffusebottomedge(Color.White)
+            self:animate(false)
+            :setstate(pn == PLAYER_1 and 2 or 3)
+            :zoomto(MeterW, MeterH)
+            :cropright(1)
             :MaskDest():ztestmode("ZTestMode_WriteOnFail")
         end
     },
 
-    Def.Quad {
+    Def.Sprite {
         Name="ProPulse",
+        Texture="../../Phoenix/SG-PULSE.png",
         InitCommand=function(self)
-            self:zoomto(20, BarH - 12):halign(0):x(-20 - BarW / 2)
-            :diffuse(pn == PLAYER_1 and color("#f7931e") or color("#ab78f5"))
-            :diffusebottomedge(Color.White)
-            self:bounce():effectmagnitude(-20,0,0):effectclock("bgm"):effecttiming(1,0,0,0)
-            :MaskDest():ztestmode("ZTestMode_WriteOnFail")
+            self:visible(false)
         end
     },
 
@@ -258,37 +251,44 @@ local t = Def.ActorFrame {
         Name="RainbowMeter",
         Texture=THEME:GetPathG("", "UI/RainbowBar"),
         InitCommand=function(self)
-            self:zoomto(BarW - 12, BarH - 12)
+            self:zoomto(MeterW, MeterH)
             :texcoordvelocity(-0.5, 0)
             :diffusealpha(0)
+            :MaskDest():ztestmode("ZTestMode_WriteOnFail")
         end
     },
 	
     Def.Sprite {
         Name="Tip",
-        Texture=THEME:GetPathG("", "UI/LifeBarTip/normal-tip"),
+        Texture="../../Phoenix/SG-TIP 1x2.png",
         InitCommand=function(self)
-            self:zoomto(60, 60)
+            self:animate(false)
+            :setstate(pn == PLAYER_1 and 0 or 1)
+            :zoomto(30, 50)
             self:pulse():effectmagnitude(1.0,1.25,1.0):effectclock("bgm"):effecttiming(1,0,0,0)
         end
     },
 
     Def.Sprite {
         Name="Tip-Danger",
-        Texture=THEME:GetPathG("", "UI/LifebarTip/danger-tip"),
+        Texture="../../Phoenix/SG-TIP 1x2.png",
         InitCommand=function(self)
+            self:animate(false)
+            :setstate(1) -- Red tip
 			self:visible(0)
-            self:zoomto(60, 60)
+            :zoomto(30, 50)
             self:pulse():effectmagnitude(1.0,1.25,1.0):effectclock("bgm"):effecttiming(1,0,0,0)
 		end
     },
 	
     Def.Sprite {
         Name="Tip-Pro",
-        Texture=THEME:GetPathG("", "UI/LifebarTip/pro-tip"),
+        Texture="../../Phoenix/SG-TIP 1x2.png",
         InitCommand=function(self)
+            self:animate(false)
+            :setstate(pn == PLAYER_1 and 0 or 1)
 			self:visible(0)
-            self:zoomto(60, 60)
+            :zoomto(30, 50)
             self:pulse():effectmagnitude(1.0,1.25,1.0):effectclock("bgm"):effecttiming(1,0,0,0)
 		end
     },
@@ -314,7 +314,7 @@ local t = Def.ActorFrame {
         end,
         UpdateScoreMessageCommand=function(self, params)
             if pn == params.Player and ScoreDisplay == "Score" then
-                self:settext((Scoring == "New" and FormatScore(params.Score) or params.Score))
+                self:settext(((Scoring == "New" or Scoring == "Phoenix") and FormatScore(params.Score) or params.Score))
             end
         end
     }

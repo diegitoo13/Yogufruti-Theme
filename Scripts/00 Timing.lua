@@ -441,6 +441,56 @@ TimingWindow[#TimingWindow+1] = function()
     }
 end
 
+TimingWindow[#TimingWindow+1] = function()
+    return {
+        Name = "Pump Phoenix",
+        Timings = {
+            ['TapNoteScore_W1']			= 0.062400,
+            ['TapNoteScore_W2']			= 0.100000,
+            ['TapNoteScore_W3']			= 0.150000,
+            ['TapNoteScore_W4']			= 0.200000,
+            ['TapNoteScore_HitMine']	= 0.150000, -- Good
+            ['TapNoteScore_Attack']		= 0.100000, -- Great
+            ['TapNoteScore_Hold']		= 0.100000, -- Great
+            ['TapNoteScore_Roll']		= 0.350000, -- Stock SM
+            ['TapNoteScore_Checkpoint']	= 0.100000, -- Great
+        },
+        Shared = {
+            ["TapNoteScore_W1"] = 120,
+            ["TapNoteScore_W2"] = 90,
+            ["TapNoteScore_W3"] = 60,
+            ["TapNoteScore_W4"] = 45,
+            ["TapNoteScore_Miss"] = -90,
+            ["TapNoteScore_HitMine"] = 0,
+            ["TapNoteScore_CheckpointHit"] = 0,
+            ["TapNoteScore_CheckpointMiss"] = -20,
+            ["TapNoteScore_MaxScore"] = 120,
+        },
+        -- Stub these out for the modules
+        Scoring = {
+            ["TapNoteScore_W1"] = 0,
+            ["TapNoteScore_W2"] = 0,
+            ["TapNoteScore_W3"] = 0,
+            ["TapNoteScore_W4"] = 0,
+            ["TapNoteScore_Miss"] = 0,
+            ["TapNoteScore_HitMine"] = 0,
+            ["TapNoteScore_CheckpointHit"] = 0,
+            ["TapNoteScore_CheckpointMiss"] = 0,
+            ["TapNoteScore_MaxScore"] = 0,
+        },
+        Life = {
+            ["TapNoteScore_W1"] = 0,
+            ["TapNoteScore_W2"] = 0,
+            ["TapNoteScore_W3"] = 0,
+            ["TapNoteScore_W4"] = 0,
+            ["TapNoteScore_Miss"] = 0,
+            ["TapNoteScore_HitMine"] = 0,
+            ["TapNoteScore_CheckpointHit"] = 0,
+            ["TapNoteScore_CheckpointMiss"] = 0,
+        }
+    }
+end
+
 function GetWindowSeconds(TimingWindow, Scale, Add, JudgeScale)
 	local fSecs = TimingWindow
 	fSecs = fSecs * Scale -- Timing Window Scale

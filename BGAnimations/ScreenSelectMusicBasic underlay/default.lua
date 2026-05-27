@@ -1,5 +1,10 @@
 setenv("IsBasicMode", true)
 
+if LoadModule("Config.Load.lua")("AutogenBasicMode", "Save/OutFoxPrefs.ini") == true then
+    AssembleBasicMode()
+    SONGMAN:SetPreferredSongs("PreferredSongs")
+end
+
 -- Not load anything if Preferred Sort is not available, this silly check is done
 -- because the game will fallback to all songs present in the game install
 if #SONGMAN:GetPreferredSortSongs() == SONGMAN:GetNumSongs() then

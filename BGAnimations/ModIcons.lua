@@ -79,7 +79,7 @@ local t = Def.ActorFrame {
         end
 
         -- Timing mode
-        local TimingMode = LoadModule("Config.Load.lua")("SmartTimings","Save/OutFoxPrefs.ini") or "Unknown"
+        local TimingMode = LoadModule("Config.Load.lua")("SmartTimings","Save/OutFoxPrefs.ini") or "Original"
         -- We don't want to display NJ!
         if TimingMode and TimingMode ~= "Pump Normal" then
             table.insert(PlayerModsArray, TimingMode)

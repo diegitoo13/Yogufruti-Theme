@@ -1,3 +1,4 @@
+local sPlayer = Var "Player"
 local c
 local ShowComboAt = THEME:GetMetric("Combo", "ShowComboAt")
 local Pulse = THEME:GetMetric("Combo", "PulseCommand")
@@ -10,16 +11,57 @@ local NumberMaxZoomAt = THEME:GetMetric("Combo", "NumberMaxZoomAt")
 local LabelMinZoom = THEME:GetMetric("Combo", "LabelMinZoom")
 local LabelMaxZoom = THEME:GetMetric("Combo", "LabelMaxZoom")
 
+local function GetComboSkinFiles()
+    local skinName = "default"
+    if THEME:GetMetric("Common","UseAdvancedJudgments") then 
+        skinName = LoadModule("Config.Load.lua")("SmartJudgments", CheckIfUserOrMachineProfile(string.sub(sPlayer,-1)-1).."/OutFoxPrefs.ini") or THEME:GetMetric("Common","DefaultJudgment")
+    end
+    
+    local cleanName = string.lower(skinName)
+    cleanName = string.match(cleanName, "^(.-)%s*%[") or cleanName
+    
+    local function searchDir(checkDir)
+        local files = FILEMAN:GetDirListing(checkDir, false, false)
+        if files and #files > 0 then
+            local comboFile, labelFile
+            for _, file in ipairs(files) do
+                local lowerFile = string.lower(file)
+                if string.find(lowerFile, "combo numbers") and string.find(lowerFile, "%.ini$") then
+                    comboFile = checkDir .. file
+                elseif string.find(lowerFile, "label") or string.find(lowerFile, "combolabel") then
+                    labelFile = checkDir .. file
+                end
+            end
+            if comboFile and labelFile then
+                return comboFile, labelFile
+            end
+        end
+        return nil
+    end
+
+    -- 1. Local theme directory
+    local combo, label = searchDir("../JudgmentSkins/" .. cleanName .. "/")
+    if combo and label then return combo, label, cleanName end
+
+    -- 2. Global directory
+    combo, label = searchDir("/JudgmentSkins/" .. cleanName .. "/")
+    if combo and label then return combo, label, cleanName end
+    
+    return "Combo numbers", "ComboLabel", "default"
+end
+
+local comboFont, comboLabel, cleanName = GetComboSkinFiles()
+
 local t = Def.ActorFrame {
 
     Def.BitmapText {
-        Font="Combo numbers",
+        Font=comboFont,
         Name="Number",
         OnCommand = function(self) self:valign(0):y(-20) end
     },
 
     Def.Sprite {
-        Texture="ComboLabel",
+        Texture=comboLabel,
         Name="ComboLabel",
         OnCommand = function(self) self:valign(1):y(-20) end
     },
@@ -40,8 +82,18 @@ local t = Def.ActorFrame {
             return
         end
 
-        local Zoom = scale( iCombo, 0, NumberMaxZoomAt, NumberMinZoom, NumberMaxZoom )
-        local Zoom = clamp( Zoom, NumberMinZoom, NumberMaxZoom )
+        local minZoom = NumberMinZoom
+        local maxZoom = NumberMaxZoom
+        local maxZoomAt = NumberMaxZoomAt
+
+        if cleanName ~= "default" then
+            minZoom = 0.8
+            maxZoom = 1.0
+            maxZoomAt = 100
+        end
+
+        local Zoom = scale( iCombo, 0, maxZoomAt, minZoom, maxZoom )
+        local Zoom = clamp( Zoom, minZoom, maxZoom )
 
         c.ComboLabel:visible(true)
         c.Number:visible(true)

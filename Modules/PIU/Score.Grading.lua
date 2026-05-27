@@ -2,33 +2,63 @@ return function(PlayerScore)
     local TimingMode = LoadModule("Config.Load.lua")("SmartTimings", "Save/OutFoxPrefs.ini")
     local PumpTiming = string.find(TimingMode, "Pump")
     local Scoring = LoadModule("Config.Load.lua")("ScoringSystem", "Save/OutFoxPrefs.ini") or "Old"
+    if TimingMode == "Pump Phoenix" then
+        Scoring = "Phoenix"
+    end
 
     local GradeLetter = "F"
     local GradeCondition = "Fail"
     local FailGrade = PlayerScore:GetGrade()
+    local bFailed = false
+    if PlayerScore.GetFailed then
+        bFailed = PlayerScore:GetFailed()
+    else
+        bFailed = (FailGrade == "Grade_Failed" or FailGrade == "Failed" or tostring(FailGrade) == "Grade_Failed")
+    end
 
-    if Scoring == "New" then
+    if Scoring == "New" or Scoring == "Phoenix" then
         -- Do some division to remove redundant zeros for checking
         local Score = PlayerScore:GetScore()
-        local GradeRanges = {
-            ["3PS"]     = {["Lower"] = 995000, ["Upper"] = 1000001},
-            ["3S"]      = {["Lower"] = 990000, ["Upper"] = 995000},
-            ["2PS"]     = {["Lower"] = 985000, ["Upper"] = 990000},
-            ["2S"]      = {["Lower"] = 980000, ["Upper"] = 985000},
-            ["PS"]      = {["Lower"] = 975000, ["Upper"] = 980000},
-            ["S"]       = {["Lower"] = 970000, ["Upper"] = 975000},
-            ["3PA"]     = {["Lower"] = 960000, ["Upper"] = 970000},
-            ["3A"]      = {["Lower"] = 950000, ["Upper"] = 960000},
-            ["2PA"]     = {["Lower"] = 925000, ["Upper"] = 950000},
-            ["2A"]      = {["Lower"] = 900000, ["Upper"] = 925000},
-            ["PA"]      = {["Lower"] = 825000, ["Upper"] = 900000},
-            ["A"]       = {["Lower"] = 750000, ["Upper"] = 825000},
-            ["B"]       = {["Lower"] = 650000, ["Upper"] = 750000},
-            ["C"]       = {["Lower"] = 550000, ["Upper"] = 650000},
-            ["D"]       = {["Lower"] = 450000, ["Upper"] = 550000}
-        }
+        local GradeRanges = {}
+        if Scoring == "Phoenix" then
+            GradeRanges = {
+                ["3PS"]     = {["Lower"] = 995000, ["Upper"] = 1000001},
+                ["3S"]      = {["Lower"] = 990000, ["Upper"] = 995000},
+                ["2PS"]     = {["Lower"] = 985000, ["Upper"] = 990000},
+                ["2S"]      = {["Lower"] = 980000, ["Upper"] = 985000},
+                ["PS"]      = {["Lower"] = 975000, ["Upper"] = 980000},
+                ["S"]       = {["Lower"] = 970000, ["Upper"] = 975000},
+                ["3PA"]     = {["Lower"] = 960000, ["Upper"] = 970000},
+                ["3A"]      = {["Lower"] = 950000, ["Upper"] = 960000},
+                ["2PA"]     = {["Lower"] = 925000, ["Upper"] = 950000},
+                ["2A"]      = {["Lower"] = 900000, ["Upper"] = 925000},
+                ["PA"]      = {["Lower"] = 825000, ["Upper"] = 900000},
+                ["A"]       = {["Lower"] = 750000, ["Upper"] = 825000},
+                ["B"]       = {["Lower"] = 700000, ["Upper"] = 750000},
+                ["C"]       = {["Lower"] = 600000, ["Upper"] = 700000},
+                ["D"]       = {["Lower"] = 450000, ["Upper"] = 600000}
+            }
+        else
+            GradeRanges = {
+                ["3PS"]     = {["Lower"] = 995000, ["Upper"] = 1000001},
+                ["3S"]      = {["Lower"] = 990000, ["Upper"] = 995000},
+                ["2PS"]     = {["Lower"] = 985000, ["Upper"] = 990000},
+                ["2S"]      = {["Lower"] = 980000, ["Upper"] = 985000},
+                ["PS"]      = {["Lower"] = 975000, ["Upper"] = 980000},
+                ["S"]       = {["Lower"] = 970000, ["Upper"] = 975000},
+                ["3PA"]     = {["Lower"] = 960000, ["Upper"] = 970000},
+                ["3A"]      = {["Lower"] = 950000, ["Upper"] = 960000},
+                ["2PA"]     = {["Lower"] = 925000, ["Upper"] = 950000},
+                ["2A"]      = {["Lower"] = 900000, ["Upper"] = 925000},
+                ["PA"]      = {["Lower"] = 825000, ["Upper"] = 900000},
+                ["A"]       = {["Lower"] = 750000, ["Upper"] = 825000},
+                ["B"]       = {["Lower"] = 650000, ["Upper"] = 750000},
+                ["C"]       = {["Lower"] = 550000, ["Upper"] = 650000},
+                ["D"]       = {["Lower"] = 450000, ["Upper"] = 550000}
+            }
+        end
 
-        if FailGrade ~= "Grade_Failed" then
+        if not bFailed then
             GradeCondition = "Pass"
         end
 
@@ -85,7 +115,7 @@ return function(PlayerScore)
             end
         end
 
-        if FailGrade ~= "Grade_Failed" then
+        if not bFailed then
             GradeCondition = "Pass"
         end
 
